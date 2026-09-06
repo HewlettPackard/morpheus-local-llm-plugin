@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 396" fill="none">
+  <g fill="#31404C">
+    <path d="M121 8 L553 8 C564 8 575 13 583 20 L644 69 L28 69 L93 18 C101 12 111 8 121 8 Z"/>
+    <rect x="8" y="78" width="656" height="294" rx="44"/>
+    <rect x="54" y="360" width="74" height="24" rx="10"/>
+    <rect x="544" y="360" width="74" height="24" rx="10"/>
+  </g>
+  <g fill="#F2F4F5">
+    <rect x="44" y="92" width="584" height="72" rx="14"/>
+    <rect x="44" y="180" width="584" height="72" rx="14"/>
+    <rect x="44" y="268" width="584" height="72" rx="14"/>
+  </g>
+  <g fill="#31404C">
+    <rect x="72" y="109" width="14" height="38" rx="4"/>
+    <rect x="104" y="109" width="14" height="38" rx="4"/>
+    <rect x="136" y="109" width="14" height="38" rx="4"/>
+    <rect x="72" y="197" width="14" height="38" rx="4"/>
+    <rect x="104" y="197" width="14" height="38" rx="4"/>
+    <rect x="136" y="197" width="14" height="38" rx="4"/>
+    <rect x="72" y="285" width="14" height="38" rx="4"/>
+    <rect x="104" y="285" width="14" height="38" rx="4"/>
+    <rect x="136" y="285" width="14" height="38" rx="4"/>
+  </g>
+  <g fill="#68747C">
+    <rect x="220" y="120" width="250" height="16" rx="8"/>
+    <rect x="220" y="208" width="250" height="16" rx="8"/>
+    <rect x="220" y="296" width="250" height="16" rx="8"/>
+  </g>
+  <g fill="#218CFD">
+    <circle cx="580" cy="128" r="16"/>
+    <circle cx="580" cy="216" r="16"/>
+    <circle cx="580" cy="304" r="16"/>
+    <g transform="translate(859 196)">
+      <path d="M0-148C8-22 22-8 133 0C22 8 8 22 0 148C-8 22-22 8-133 0C-22-8-8-22 0-148Z"/>
+      <g transform="translate(-99 -99) rotate(45)">
+        <rect x="-21" y="-7" width="42" height="14" rx="7"/>
+      </g>
+      <g transform="translate(99 -99) rotate(-45)">
+        <rect x="-21" y="-7" width="42" height="14" rx="7"/>
+      </g>
+      <g transform="translate(99 99) rotate(45)">
+        <rect x="-21" y="-7" width="42" height="14" rx="7"/>
+      </g>
+      <g transform="translate(-99 99) rotate(-45)">
+        <rect x="-21" y="-7" width="42" height="14" rx="7"/>
+      </g>
+    </g>
+  </g>
+</svg>
