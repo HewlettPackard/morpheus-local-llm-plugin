@@ -115,7 +115,7 @@ class OllamaProviderSpec extends Specification {
 		def result = provider.validate(integration, [:])
 
 		then:
-		1 * apiService.listModelsOllama('http://localhost:11434', null) >> [success: true, data: [models: []]]
+		1 * apiService.listModelsOllama('http://localhost:11434', null, _) >> [success: true, data: [models: []]]
 		result.success
 	}
 
@@ -130,8 +130,8 @@ class OllamaProviderSpec extends Specification {
 		def result = provider.validate(integration, [:])
 
 		then:
-		1 * apiService.listModelsOllama('http://localhost:11434', null) >> [success: false, msg: 'Not found']
-		1 * apiService.listModelsOpenAI('http://localhost:11434', null) >> [success: true, data: [data: []]]
+		1 * apiService.listModelsOllama('http://localhost:11434', null, _) >> [success: false, msg: 'Not found']
+		1 * apiService.listModelsOpenAI('http://localhost:11434', null, _) >> [success: true, data: [data: []]]
 		result.success
 	}
 
@@ -146,8 +146,8 @@ class OllamaProviderSpec extends Specification {
 		def result = provider.validate(integration, [:])
 
 		then:
-		1 * apiService.listModelsOllama('http://localhost:11434', null) >> [success: false, msg: 'Connection refused']
-		1 * apiService.listModelsOpenAI('http://localhost:11434', null) >> [success: false, msg: 'Connection refused']
+		1 * apiService.listModelsOllama('http://localhost:11434', null, _) >> [success: false, msg: 'Connection refused']
+		1 * apiService.listModelsOpenAI('http://localhost:11434', null, _) >> [success: false, msg: 'Connection refused']
 		!result.success
 	}
 
@@ -163,7 +163,7 @@ class OllamaProviderSpec extends Specification {
 		def result = provider.validate(integration, [:])
 
 		then:
-		1 * apiService.listModelsOllama('http://remote-ollama:11434', 'my-api-key') >> [success: true, data: [models: []]]
+		1 * apiService.listModelsOllama('http://remote-ollama:11434', 'my-api-key', _) >> [success: true, data: [models: []]]
 		result.success
 	}
 
@@ -176,7 +176,7 @@ class OllamaProviderSpec extends Specification {
 		def result = provider.validate(integration, [:])
 
 		then:
-		1 * apiService.listModelsOllama('http://localhost:11434', null) >> [success: true, data: [models: []]]
+		1 * apiService.listModelsOllama('http://localhost:11434', null, _) >> [success: true, data: [models: []]]
 		result.success
 	}
 
@@ -194,7 +194,7 @@ class OllamaProviderSpec extends Specification {
 		provider.refresh(integration)
 
 		then:
-		1 * apiService.listModelsOllama('http://localhost:11434', null) >> [
+		1 * apiService.listModelsOllama('http://localhost:11434', null, _) >> [
 			success: true,
 			data   : [models: [
 				[name: 'llama3:latest', details: [family: 'llama3', parameter_size: '8B']],
@@ -219,8 +219,8 @@ class OllamaProviderSpec extends Specification {
 		provider.refresh(integration)
 
 		then:
-		1 * apiService.listModelsOllama('http://localhost:11434', null) >> [success: false, msg: 'Not found']
-		1 * apiService.listModelsOpenAI('http://localhost:11434', null) >> [
+		1 * apiService.listModelsOllama('http://localhost:11434', null, _) >> [success: false, msg: 'Not found']
+		1 * apiService.listModelsOpenAI('http://localhost:11434', null, _) >> [
 			success: true,
 			data   : [data: [
 				[id: 'llama3:latest']

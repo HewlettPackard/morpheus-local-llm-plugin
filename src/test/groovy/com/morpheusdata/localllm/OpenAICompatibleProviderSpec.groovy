@@ -118,7 +118,7 @@ class OpenAICompatibleProviderSpec extends Specification {
 		def result = provider.validate(integration, [:])
 
 		then:
-		1 * apiService.listModelsOpenAI('http://localhost:8080', 'test-key') >> [success: true, data: [data: []]]
+		1 * apiService.listModelsOpenAI('http://localhost:8080', 'test-key', _) >> [success: true, data: [data: []]]
 		result.success
 	}
 
@@ -133,7 +133,7 @@ class OpenAICompatibleProviderSpec extends Specification {
 		def result = provider.validate(integration, [:])
 
 		then:
-		1 * apiService.listModelsOpenAI('http://localhost:8080', null) >> [success: true, data: [data: []]]
+		1 * apiService.listModelsOpenAI('http://localhost:8080', null, _) >> [success: true, data: [data: []]]
 		result.success
 	}
 
@@ -161,7 +161,7 @@ class OpenAICompatibleProviderSpec extends Specification {
 		def result = provider.validate(integration, [:])
 
 		then:
-		1 * apiService.listModelsOpenAI('http://bad-host:9999', null) >> [success: false, msg: 'Connection refused']
+		1 * apiService.listModelsOpenAI('http://bad-host:9999', null, _) >> [success: false, msg: 'Connection refused']
 		!result.success
 	}
 
@@ -180,7 +180,7 @@ class OpenAICompatibleProviderSpec extends Specification {
 		provider.refresh(integration)
 
 		then:
-		1 * apiService.listModelsOpenAI('http://localhost:8080', 'test-key') >> [
+		1 * apiService.listModelsOpenAI('http://localhost:8080', 'test-key', _) >> [
 			success: true,
 			data   : [data: [
 				[id: 'llama-3-8b', owned_by: 'vllm'],

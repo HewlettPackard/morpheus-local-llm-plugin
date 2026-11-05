@@ -131,6 +131,20 @@ class OllamaProvider implements LlmProvider {
 		)
 		optionTypes.add(credentials)
 
+		OptionType ignoreSsl = new OptionType(
+			code: "${PROVIDER_CODE}.ignoreSsl",
+			name: "Ignore SSL Errors",
+			fieldName: "ignoreSsl",
+			fieldLabel: "Ignore SSL Errors",
+			fieldContext: "config",
+			inputType: OptionType.InputType.CHECKBOX,
+			displayOrder: 2,
+			required: false,
+			defaultValue: "on",
+			helpText: "Skip certificate verification (for self-signed certificates). Disable for endpoints with valid certificates, especially behind SNI-based load balancers or ingress controllers."
+		)
+		optionTypes.add(ignoreSsl)
+
 		return optionTypes
 	}
 
@@ -145,9 +159,9 @@ class OllamaProvider implements LlmProvider {
 			String baseUrl = accountIntegration.serviceUrl ?: DEFAULT_API_URL
 
 			// Try Ollama-native endpoint first, fall back to OpenAI-compatible
-			def result = apiService.listModelsOllama(baseUrl, token)
+			def result = apiService.listModelsOllama(baseUrl, token, connectionOpts(accountIntegration))
 			if (!result.success) {
-				result = apiService.listModelsOpenAI(baseUrl, token)
+				result = apiService.listModelsOpenAI(baseUrl, token, connectionOpts(accountIntegration))
 			}
 			if (result.success) {
 				return ServiceResponse.success(llmIntegration)
@@ -173,10 +187,10 @@ class OllamaProvider implements LlmProvider {
 			String baseUrl = accountIntegration.serviceUrl ?: DEFAULT_API_URL
 
 			// Try Ollama-native endpoint first for richer model metadata
-			Map apiResult = apiService.listModelsOllama(baseUrl, token)
+			Map apiResult = apiService.listModelsOllama(baseUrl, token, connectionOpts(accountIntegration))
 			boolean ollamaNative = apiResult.success
 			if (!ollamaNative) {
-				apiResult = apiService.listModelsOpenAI(baseUrl, token)
+				apiResult = apiService.listModelsOpenAI(baseUrl, token, connectionOpts(accountIntegration))
 			}
 
 			new LlmModelsSync(llmIntegration).execute(morpheusContext, PROVIDER_CODE, apiResult) { Map apiResponse ->
@@ -221,7 +235,7 @@ class OllamaProvider implements LlmProvider {
 				log.warn("Ollama API retry ${attempt - 1}/${maxAttempts - 1} after connection failure")
 				Thread.sleep(1500L * (attempt - 1))
 			}
-		Map requestOpts = opts ?: [:]
+		Map requestOpts = (opts ?: [:]) + connectionOpts(accountIntegration)
 			try {
 				def result = apiService.interact(baseUrl, token, LocalLlmApiService.CHAT_COMPLETIONS_PATH, requestBody, requestOpts)
 				if (result.success && result.data) {
@@ -282,7 +296,7 @@ class OllamaProvider implements LlmProvider {
 				return
 			}
 			Map requestBody = buildChatRequestBody(request, model, true)
-			apiService.streamInteract(baseUrl, token, LocalLlmApiService.CHAT_COMPLETIONS_PATH, requestBody, handler, opts ?: [:])
+			apiService.streamInteract(baseUrl, token, LocalLlmApiService.CHAT_COMPLETIONS_PATH, requestBody, handler, (opts ?: [:]) + connectionOpts(accountIntegration))
 		} catch (Exception e) {
 			log.error("Error during Ollama streaming chat: ${e.message}", e)
 			handler?.onError(e)
@@ -290,6 +304,13 @@ class OllamaProvider implements LlmProvider {
 	}
 
 	// --- Helper methods ---
+
+	/**
+	 * Connection options derived from the integration settings (currently SSL handling).
+	 */
+	protected Map connectionOpts(AccountIntegration accountIntegration) {
+		return [ignoreSSL: LocalLlmApiService.parseBoolean(accountIntegration?.getConfigProperty('ignoreSsl'), true)]
+	}
 
 	/**
 	 * Resolve API token from integration credentials.
