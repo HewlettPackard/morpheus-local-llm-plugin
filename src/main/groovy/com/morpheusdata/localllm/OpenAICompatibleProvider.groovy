@@ -133,6 +133,20 @@ class OpenAICompatibleProvider implements LlmProvider {
 		)
 		optionTypes.add(credentials)
 
+		OptionType ignoreSsl = new OptionType(
+			code: "${PROVIDER_CODE}.ignoreSsl",
+			name: "Ignore SSL Errors",
+			fieldName: "ignoreSsl",
+			fieldLabel: "Ignore SSL Errors",
+			fieldContext: "config",
+			inputType: OptionType.InputType.CHECKBOX,
+			displayOrder: 2,
+			required: false,
+			defaultValue: "on",
+			helpText: "Skip certificate verification (for self-signed certificates). Disable for endpoints with valid certificates, especially behind SNI-based load balancers or ingress controllers."
+		)
+		optionTypes.add(ignoreSsl)
+
 		return optionTypes
 	}
 
@@ -149,7 +163,7 @@ class OpenAICompatibleProvider implements LlmProvider {
 				return ServiceResponse.error('API Endpoint URL is required for OpenAI Compatible integration')
 			}
 
-			def result = apiService.listModelsOpenAI(baseUrl, token)
+			def result = apiService.listModelsOpenAI(baseUrl, token, connectionOpts(accountIntegration))
 			if (result.success) {
 				return ServiceResponse.success(llmIntegration)
 			} else {
@@ -177,7 +191,7 @@ class OpenAICompatibleProvider implements LlmProvider {
 				return
 			}
 
-			Map apiResult = apiService.listModelsOpenAI(baseUrl, token)
+			Map apiResult = apiService.listModelsOpenAI(baseUrl, token, connectionOpts(accountIntegration))
 
 			new LlmModelsSync(llmIntegration).execute(morpheusContext, PROVIDER_CODE, apiResult) { Map apiResponse ->
 				buildModelsFromApiResponse(llmIntegration, apiResponse)
@@ -223,7 +237,7 @@ class OpenAICompatibleProvider implements LlmProvider {
 				log.warn("OpenAI Compatible API retry ${attempt - 1}/${maxAttempts - 1} after connection failure")
 				Thread.sleep(1500L * (attempt - 1))
 			}
-		Map requestOpts = opts ?: [:]
+		Map requestOpts = (opts ?: [:]) + connectionOpts(accountIntegration)
 			try {
 				def result = apiService.interact(baseUrl, token, LocalLlmApiService.CHAT_COMPLETIONS_PATH, requestBody, requestOpts)
 				if (result.success && result.data) {
@@ -288,7 +302,7 @@ class OpenAICompatibleProvider implements LlmProvider {
 				return
 			}
 			Map requestBody = buildChatRequestBody(request, model, true)
-			apiService.streamInteract(baseUrl, token, LocalLlmApiService.CHAT_COMPLETIONS_PATH, requestBody, handler, opts ?: [:])
+			apiService.streamInteract(baseUrl, token, LocalLlmApiService.CHAT_COMPLETIONS_PATH, requestBody, handler, (opts ?: [:]) + connectionOpts(accountIntegration))
 		} catch (Exception e) {
 			log.error("Error during OpenAI Compatible streaming chat: ${e.message}", e)
 			handler?.onError(e)
@@ -296,6 +310,13 @@ class OpenAICompatibleProvider implements LlmProvider {
 	}
 
 	// --- Helper methods ---
+
+	/**
+	 * Connection options derived from the integration settings (currently SSL handling).
+	 */
+	protected Map connectionOpts(AccountIntegration accountIntegration) {
+		return [ignoreSSL: LocalLlmApiService.parseBoolean(accountIntegration?.getConfigProperty('ignoreSsl'), true)]
+	}
 
 	/**
 	 * Resolve API token from integration credentials.
