@@ -99,7 +99,7 @@ class LocalLlmApiService {
 			HttpApiClient.RequestOptions requestOptions = buildRequestOptions(token, [
 				'Content-Type': 'application/json',
 				'Accept'      : 'text/event-stream'
-			], requestBody, DEFAULT_INTERACT_READ_TIMEOUT)
+			], requestBody, DEFAULT_INTERACT_READ_TIMEOUT, resolveIgnoreSsl(opts))
 
 			withApiClient(opts) { HttpApiClient apiClient ->
 				ServiceResponse<CloseableHttpResponse> apiResponse = apiClient.callStreamApi(normalizedUrl, path, null, null, requestOptions, 'POST')
@@ -171,7 +171,7 @@ class LocalLlmApiService {
 		try {
 			HttpApiClient.RequestOptions requestOptions = buildRequestOptions(token, [
 				'Accept': 'application/json'
-			], null, DEFAULT_READ_TIMEOUT)
+			], null, DEFAULT_READ_TIMEOUT, resolveIgnoreSsl(opts))
 			return withApiClient(opts) { HttpApiClient apiClient ->
 				ServiceResponse apiResponse = apiClient.callJsonApi(baseUrl, path, null, null, requestOptions, 'GET')
 				if (apiResponse?.success) {
@@ -198,7 +198,7 @@ class LocalLlmApiService {
 			HttpApiClient.RequestOptions requestOptions = buildRequestOptions(token, [
 				'Content-Type': 'application/json',
 				'Accept'      : 'application/json'
-			], requestBody, DEFAULT_INTERACT_READ_TIMEOUT)
+			], requestBody, DEFAULT_INTERACT_READ_TIMEOUT, resolveIgnoreSsl(opts))
 			return withApiClient(opts) { HttpApiClient apiClient ->
 				ServiceResponse apiResponse = apiClient.callJsonApi(baseUrl, path, null, null, requestOptions, 'POST')
 				if (apiResponse?.success) {
@@ -302,13 +302,36 @@ class LocalLlmApiService {
 	}
 
 	/**
+	 * Resolve whether SSL verification should be skipped for a request.
+	 * Defaults to true (previous behaviour) when not specified.
+	 */
+	static boolean resolveIgnoreSsl(Map opts) {
+		return parseBoolean(opts?.ignoreSSL, true)
+	}
+
+	/**
+	 * Parse checkbox/boolean style values ('on', 'true', true, 'off', 'false', false).
+	 */
+	static boolean parseBoolean(Object value, boolean defaultValue) {
+		if (value == null || value.toString().trim().isEmpty()) {
+			return defaultValue
+		}
+		String v = value.toString().trim().toLowerCase()
+		if (v in ['true', 'on', 'yes', '1']) return true
+		if (v in ['false', 'off', 'no', '0']) return false
+		return defaultValue
+	}
+
+	/**
 	 * Build request options. When token is null or empty, apiToken is not set
 	 * so no Authorization header is sent (supporting unauthenticated local LLM servers).
 	 */
-	protected HttpApiClient.RequestOptions buildRequestOptions(String token, Map<CharSequence, CharSequence> headers, Object body, Integer readTimeout) {
+	protected HttpApiClient.RequestOptions buildRequestOptions(String token, Map<CharSequence, CharSequence> headers, Object body, Integer readTimeout, Boolean ignoreSSL = true) {
 		HttpApiClient.RequestOptions options = new HttpApiClient.RequestOptions(
 			headers          : headers,
-			ignoreSSL        : true,
+			// Note: with ignoreSSL=true some HttpApiClient versions omit the TLS SNI extension,
+			// which breaks endpoints behind SNI-routed ingresses/load balancers.
+			ignoreSSL        : ignoreSSL,
 			connectionTimeout: DEFAULT_CONNECTION_TIMEOUT,
 			readTimeout      : readTimeout
 		)
